@@ -1,7 +1,7 @@
-import Trello from 'services/Trello';
+import Redmine from 'services/Redmine';
 import TagManager from 'lib/TagManager';
 
-const tracker = new Trello();
+const tracker = new Redmine();
 
 /**
  * Store actions.
@@ -139,8 +139,8 @@ const actions = {
 	 * @param  {Function} options.dispatch
 	 * @return {Promise}
 	 */
-	authorize({ commit, dispatch }) {
-		return tracker.authorize()
+	authorize({ commit, dispatch }, credentials) {
+		return tracker.authorize(credentials)
 			.then((token) => {
 				commit('SET_STATUS', 'authorized');
 

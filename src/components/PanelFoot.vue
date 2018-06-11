@@ -5,7 +5,7 @@
 		</div>
 
 		<div class="panel__credits">
-			Created with <i class="ico-heart"></i> by <a href="https://htmlburger.com" target="_blank">htmlBurger</a>
+			Created with <i class="ico-heart"></i> by <a href="https://htmlburger.com" target="_blank">htmlBurger</a> & <a href="https://disko.fr" target="_blank">DISKO</a>
 		</div>
 	</div>
 </template>

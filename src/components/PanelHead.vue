@@ -5,7 +5,7 @@
 				<button :disabled="isSubmittingIssue" @click.prevent="initTagging" class="btn">Add Issue</button>
 
 				<a :href="project.meta.shortUrl || project.meta.url" target="_blank" class="panel__project-link">
-					<i class="ico-trello"></i>Open Project
+					Open Project
 				</a>
 
 				<div class="panel__dropdown">
@@ -21,12 +21,6 @@
 						<ul>
 							<li v-for="member in members">
 								<user :user="member" />
-							</li>
-
-							<li>
-								<a :href="project.meta.shortUrl || project.meta.url" target="_blank">
-									<i class="ico-add"></i> Add more from Trello
-								</a>
 							</li>
 						</ul>
 					</div>
