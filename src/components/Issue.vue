@@ -1,16 +1,16 @@
 <template>
 	<div class="issue" @click.prevent="selectIssue(issue.id)">
 		<div class="issue__inner">
-			<a :href="issue.url" @click.stop class="issue__link" target="_blank" title="Open in Trello">
+			<a :href="'https://bugkiller.disko.fr/issues/' + issue.id" @click.stop class="issue__link" target="_blank" title="Open in Redmine">
 				<i class="ico-link"></i>
 			</a>
 
 			<h5 class="issue__title">
-				<badge :value="group.name" class="issue__badge" /> {{issue.name}}
+				<badge :value="group.name" class="issue__badge" /> {{issue.subject}}
 			</h5>
 
 			<ul class="issue__meta">
-				<li :title="issue.dateLastActivity">{{issue.dateLastActivity | fromNow}}</li>
+				<li :title="issue.updated_on">{{issue.updated_on | fromNow}}</li>
 
 				<template v-if="issue.badges">
 					<li>

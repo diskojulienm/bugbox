@@ -47,15 +47,17 @@ const getters = {
 
 		if (state.filters.currentPageOnly) {
 			issues = issues.filter(issue => {
-				if (!issue.meta) {
+				if (!issue.custom_fields) {
 					return false;
 				}
 
-				const currentUrl = getters.currentUrl.replace(/\#issue\-(.+)$/, '');
-
-				return currentUrl === issue.meta.url;
+				if(issue.custom_fields.find(custom_field => custom_field.value.match(getters.currentUrl) !== null)){
+					return true;
+				}
+				return false
 			});
 		}
+		console.log(issues);
 
 		if (state.filters.group) {
 			issues = issues.filter(issue => issue.idList === state.filters.group);

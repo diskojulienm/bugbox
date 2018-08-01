@@ -2,9 +2,9 @@
 	<div class="user">
 		<div class="user__name">
 
-			<span class="user__initials">{{user.initials}}</span>
+			<span class="user__initials">{{user.firstname.charAt(0) + user.lastname.charAt(0)}}</span>
 
-			<span class="user__fullname">{{user.fullName}}</span>
+			<span class="user__fullname">{{user.firstname}} {{user.lastname}}</span>
 		</div>
 	</div>
 </template>

@@ -4,27 +4,9 @@
 			<template v-if="project">
 				<button :disabled="isSubmittingIssue" @click.prevent="initTagging" class="btn">Add Issue</button>
 
-				<a :href="project.meta.shortUrl || project.meta.url" target="_blank" class="panel__project-link">
+				<a :href="'https://bugkiller.disko.fr/projects/' + project.identifier" target="_blank" class="panel__project-link">
 					Open Project
 				</a>
-
-				<div class="panel__dropdown">
-					<a @click.prevent href="#" class="panel__dropdown-btn" title="Project Members">
-						<span class="panel__dropdown-icon">
-							<i class="ico-users"></i>
-
-							<i class="ico-users-hover"></i>
-						</span>
-					</a>
-
-					<div class="panel__dropdown-menu panel__dropdown-menu--small">
-						<ul>
-							<li v-for="member in members">
-								<user :user="member" />
-							</li>
-						</ul>
-					</div>
-				</div>
 			</template>
 
 			<div class="panel__dropdown">

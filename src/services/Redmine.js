@@ -113,11 +113,7 @@ export default class Redmine extends Tracker {
 		return new Promise((resolve, reject) => {
 			return this.client.get('/users/current.json')
 				.then((response) => {
-					const userData = response.data.user;
-					const user = {
-						initials: userData.firstname.charAt(0) + userData.lastname.charAt(0),
-						fullName: userData.firstname + ' ' + userData.lastname
-					};
+					const user = response.data.user;
 					resolve(user);
 				})
 				.catch(error => reject(error));
@@ -130,14 +126,16 @@ export default class Redmine extends Tracker {
 	 */
 	findProject(project) {
 		return new Promise((resolve, reject) => {
-			this.client.get('/projects.json', {
-				params: {
-					include: 'urls' // TODO : Make API accessible for this params
-				}
-			})
+			this.client.get('/projects.json')
 			.then((response) => {
-				const projects   = response.data.projects;
-				const selected   = projects.find(project => project.description.match(window.location.hostname) !== null);
+				const projects = response.data.projects;
+				const selected = projects.map(function(value, key){
+					const custom_fields = value.custom_fields;
+					if(custom_fields.find(custom_field => custom_field.value.match(window.location.hostname) !== null)){
+						return value;
+					}
+					return null;
+				}).filter(n => n).shift();
 				const result = {
 					matches: projects,
 					selected: selected
@@ -155,10 +153,22 @@ export default class Redmine extends Tracker {
 	 */
 	getProject(id) {
 		return new Promise((resolve, reject) => {
-			this.client.get(`/projects/${id}.json`)
-				.then((response) => {
-					resolve(response.data.project);
-				})
+			axios.all([
+				this.client.get(`/issues.json`, {
+					params: {
+						project_id: id
+					}
+				}),
+				this.client.get(`/issue_statuses.json`)
+			])
+				.then(axios.spread((issues, issue_statuses) => {
+					const project = {
+						groups: issue_statuses.data.issue_statuses,
+						issues: issues.data.issues
+					};
+
+					resolve(project);
+				}))
 				.catch(error => reject(error));
 		});
 	}
