@@ -4,7 +4,7 @@
 			<template v-if="project">
 				<button :disabled="isSubmittingIssue" @click.prevent="initTagging" class="btn">Add Issue</button>
 
-				<a :href="'https://bugkiller.disko.fr/projects/' + project.identifier" target="_blank" class="panel__project-link">
+				<a :href="'https://bugkiller.disko.fr/projects/' + project.repository.identifier" target="_blank" class="panel__project-link">
 					Open Project
 				</a>
 			</template>

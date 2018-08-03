@@ -6,17 +6,17 @@
 			</a>
 
 			<h5 class="issue__title">
-				<badge :value="group.name" class="issue__badge" /> {{issue.subject}}
+				<badge :value="issue.status" class="issue__badge" /> {{issue.subject}}
 			</h5>
 
 			<ul class="issue__meta">
 				<li :title="issue.updated_on">{{issue.updated_on | fromNow}}</li>
 
-				<template v-if="issue.badges">
+				<!--template v-if="issue.badges">
 					<li>
 						{{issue.badges.comments || 0}} {{issue.badges.comments !== 1 ? 'comments' : 'comment'}}
 					</li>
-				</template>
+				</template-->
 			</ul>
 		</div>
 	</div>

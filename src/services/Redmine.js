@@ -3,6 +3,7 @@ import LocalStorage from 'services/LocalStorage';
 import SessionStorage from 'services/SessionStorage';
 import ExtensionStorage from 'services/ExtensionStorage';
 import axios from 'axios';
+import { dataURItoFile } from 'helpers/utils';
 
 export default class Redmine extends Tracker {
 
@@ -154,6 +155,7 @@ export default class Redmine extends Tracker {
 	getProject(id) {
 		return new Promise((resolve, reject) => {
 			axios.all([
+				this.client.get(`/projects/${id}.json`),
 				this.client.get(`/issues.json`, {
 					params: {
 						project_id: id
@@ -161,8 +163,9 @@ export default class Redmine extends Tracker {
 				}),
 				this.client.get(`/issue_statuses.json`)
 			])
-				.then(axios.spread((issues, issue_statuses) => {
+				.then(axios.spread((repository, issues, issue_statuses) => {
 					const project = {
+						repository: repository.data.project,
 						groups: issue_statuses.data.issue_statuses,
 						issues: issues.data.issues
 					};
@@ -193,8 +196,54 @@ export default class Redmine extends Tracker {
 	 * Add issue item.
 	 * @return {Promise<Object>}
 	 */
-	addIssue() {
-		throw new Error('Please implement me.');
+	addIssue(issue) {
+		const payload = {
+			issue: {
+				subject: issue.title,
+				description: issue.description,
+				custom_fields: [
+					{id: 1, value: window.location.href} // Page
+				],
+				project_id: issue.projectId
+			}
+		};
+
+		if (issue.meta && issue.meta.screenshot) {
+			issue.screenshot = issue.meta.screenshot;
+
+			delete issue.meta.screenshot;
+		}
+
+		return this.addIssueScreenshot(issue.screenshot)
+			.then(token => {
+				if(token){
+					payload.issue.uploads = [
+						{token: token, filename: 'screenshot.png', content_type: 'image/png'}
+					];
+				}
+
+				return this.client.post('/issues.json', payload);
+			});
+	}
+
+	/**
+	 * Add issue screenshot.
+	 * @return {Promise<Object>}
+	 */
+	addIssueScreenshot(screenshot) {
+		if (!screenshot) {
+			return Promise.resolve(null);
+		}
+
+		const request = this.client.post(`/uploads.json`, dataURItoFile(screenshot, 'screenshot.png'), {
+			headers: {
+				'Content-Type': 'application/octet-stream'
+			}
+		});
+
+		return request.then(({data}) => {
+			return data.upload.token;
+		});
 	}
 
 	/**

@@ -57,7 +57,6 @@ const getters = {
 				return false
 			});
 		}
-		console.log(issues);
 
 		if (state.filters.group) {
 			issues = issues.filter(issue => issue.idList === state.filters.group);
