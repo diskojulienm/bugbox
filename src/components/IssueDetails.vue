@@ -5,29 +5,22 @@
 				<i class="ico-chevron-left"></i> Back
 			</a>
 
-			<a :href="issue.url" @click.stop class="issue__link" target="_blank">
-				<i class="ico-link-white"></i> Open Issue In Trello
+			<a :href="'https://bugkiller.disko.fr/issues/' + issue.id" @click.stop class="issue__link" target="_blank">
+				<i class="ico-link-white"></i> Open Issue In Redmine
 			</a>
 		</div>
 
 		<div class="issue__inner">
 			<h4 class="issue__title">
-				<badge :value="group.name" class="issue__badge" />
-
-				<span v-if="issue.badges" class="issue__comments">
-					<i class="ico-comment"></i>
-
-					<span>{{issue.badges.comments || 0}}</span>
-				</span>
-
-				{{issue.name}}
+				<badge :value="issue.status" class="issue__badge" />
+				{{issue.subject}}
 			</h4>
 
-			<div v-if="issue.desc" class="issue__section">
+			<div v-if="issue.description" class="issue__section">
 				<h5 class="issue__section-title">Description:</h5>
 
 				<div class="issue__description">
-					{{issue.desc}}
+					{{issue.description}}
 				</div>
 			</div>
 
@@ -36,7 +29,7 @@
 			</div>
 
 			<div class="issue__section">
-				<h5 class="issue__section-title">Change group:</h5>
+				<h5 class="issue__section-title">Change status:</h5>
 
 				<div class="select">
 					<loader v-if="isChangingGroup" />
@@ -47,24 +40,24 @@
 				</div>
 			</div>
 
-			<div v-if="issue.meta && issue.meta.browser" class="issue__section">
+			<div v-if="hasMetaData && this.selectedIssueMeta.browser" class="issue__section">
 				<h5 class="issue__section-title">Meta</h5>
 
 				<div class="table issue__meta">
 					<table>
 						<tr>
 							<th>Resolution</th>
-							<td>{{issue.meta.browser.width}} x {{issue.meta.browser.height}}</td>
+							<td>{{this.selectedIssueMeta.browser.width}} x {{this.selectedIssueMeta.browser.height}}</td>
 						</tr>
 
 						<tr>
 							<th>Browser</th>
-							<td>{{issue.meta.browser.vendor}} {{issue.meta.browser.version}}</td>
+							<td>{{this.selectedIssueMeta.browser.vendor}} {{this.selectedIssueMeta.browser.version}}</td>
 						</tr>
 
 						<tr>
 							<th>OS</th>
-							<td>{{issue.meta.browser.os}}</td>
+							<td>{{this.selectedIssueMeta.browser.os}}</td>
 						</tr>
 					</table>
 				</div>
@@ -123,13 +116,14 @@ export default {
 	data() {
 		return {
 			status: '',
-			groupId: this.issue && this.issue.idList
+			groupId: this.issue && this.issue.status && this.issue.status.id
 		};
 	},
 
 	computed: {
 		...mapGetters([
-			'currentUrl'
+			'currentUrl',
+			'selectedIssueMeta'
 		]),
 
 		/**
@@ -177,6 +171,10 @@ export default {
 			const currentUrl = this.currentUrl.replace(/\/?\#issue\-\w+$/, '');
 
 			return issueUrl === currentUrl;
+		},
+
+		hasMetaData() {
+			return (this.selectedIssueMeta);
 		}
 	},
 
@@ -213,7 +211,7 @@ export default {
 	watch: {
 		issue: {
 			handler() {
-				this.groupId = this.issue.idList;
+				this.groupId = this.issue.status.id;
 			},
 			deep: true
 		}

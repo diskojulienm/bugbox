@@ -201,9 +201,6 @@ export default class Redmine extends Tracker {
 			issue: {
 				subject: issue.title,
 				description: issue.description,
-				custom_fields: [
-					{id: 1, value: window.location.href} // Page
-				],
 				project_id: issue.projectId
 			}
 		};
@@ -212,6 +209,14 @@ export default class Redmine extends Tracker {
 			issue.screenshot = issue.meta.screenshot;
 
 			delete issue.meta.screenshot;
+
+			payload.issue.custom_fields = [
+				{id: 1, value: issue.meta.url}, // page
+				{id: 10, value: `${issue.meta.browser.width}x${issue.meta.browser.height}`}, // screen_size
+				{id: 11, value: issue.meta.browser.os}, // os
+				{id: 12, value: `${issue.meta.browser.vendor} ${issue.meta.browser.version}`}, // browser
+				{id: 13, value: JSON.stringify(issue.meta)}, // meta
+			]
 		}
 
 		return this.addIssueScreenshot(issue.screenshot)
@@ -250,8 +255,15 @@ export default class Redmine extends Tracker {
 	 * Change issue group.
 	 * @return {Promise<Object>}
 	 */
-	changeIssueGroup() {
-		throw new Error('Please implement me.');
+	changeIssueGroup({ cardId, groupId }) {
+		const data = {
+			issue: {
+				status_id: groupId
+			}
+		};
+		const request = this.client.put(`issues/${cardId}.json`, data);
+
+		return request.then(({ data }) => data);
 	}
 
 	/**

@@ -81,6 +81,24 @@ const getters = {
 		return state.selectedIssueId;
 	},
 
+	selectedIssueMeta(state, getters) {
+		let issues = getters.issues;
+		let selectedIssueId = getters.selectedIssueId;
+		let selectedIssueMeta = false;
+
+		issues.forEach(issue => {
+			if(issue.id == selectedIssueId && issue.custom_fields){
+				issue.custom_fields.forEach(custom_field => {
+					if(custom_field.name == 'meta'){
+						selectedIssueMeta = JSON.parse(custom_field.value);
+					}
+				});
+			}
+		});
+
+		return selectedIssueMeta;
+	},
+
 	tagManager(state, getters) {
 		return state.tagManager;
 	},
