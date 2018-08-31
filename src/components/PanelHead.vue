@@ -4,7 +4,7 @@
 			<template v-if="project">
 				<button :disabled="isSubmittingIssue" @click.prevent="initTagging" class="btn">Add Issue</button>
 
-				<a :href="'https://bugkiller.disko.fr/projects/' + project.repository.identifier" target="_blank" class="panel__project-link">
+				<a :href="'https://bugkiller.disko.fr/projects/' + project.meta.identifier" target="_blank" class="panel__project-link">
 					Open Project
 				</a>
 			</template>
@@ -21,7 +21,9 @@
 				<div class="panel__dropdown-menu">
 					<ul>
 						<li>
-							<user :user="user" />
+							<a href="https://bugkiller.disko.fr/my/account" target="_blank">
+								<user :user="user" />
+							</a>
 						</li>
 
 						<li v-if="project && projectsList && projectsList.length > 1">
@@ -58,7 +60,6 @@ export default {
 			'user',
 			'projectsList',
 			'project',
-			'members',
 			'isSubmittingIssue'
 		]),
 	},

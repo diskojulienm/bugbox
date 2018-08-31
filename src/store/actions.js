@@ -195,6 +195,19 @@ const actions = {
 	},
 
 	/**
+	 * Setup with existing project in tracker.
+	 * @return {Promise}
+	 */
+	selectProject({ commit, dispatch }, id) {
+		return tracker.selectProject(id)
+			.then((response) => {
+				if (response.status && response.status === 200) {
+					return dispatch('getProject', id)
+				}
+			});
+	},
+
+	/**
 	 * Initialize TagManager instance.
 	 * @param  {Function} options.commit
 	 * @param  {Object} payload

@@ -1,13 +1,21 @@
+import User from 'model/User';
+import Issue from 'model/Issue';
 import Tracker from 'services/Tracker';
 import LocalStorage from 'services/LocalStorage';
 import SessionStorage from 'services/SessionStorage';
 import ExtensionStorage from 'services/ExtensionStorage';
-import axios from 'axios';
 import { dataURItoFile } from 'helpers/utils';
+import axios from 'axios';
+
+/**
+ * Constants.
+ */
+ const PROJECT_CF_URLS_ID = 8;
+ const ISSUE_CF_META_ID = 13;
 
 export default class Redmine extends Tracker {
 
-    /**
+	/**
 	 * Create a Redmine Tracker.
 	 */
 	constructor() {
@@ -114,7 +122,13 @@ export default class Redmine extends Tracker {
 		return new Promise((resolve, reject) => {
 			return this.client.get('/users/current.json')
 				.then((response) => {
-					const user = response.data.user;
+					const userData = response.data.user;
+                    const user = new User(
+                        userData.id,
+                        userData.firstname,
+                        userData.lastname,
+                        userData.mail
+                    );
 					resolve(user);
 				})
 				.catch(error => reject(error));
@@ -125,11 +139,16 @@ export default class Redmine extends Tracker {
 	 * Find a project matching query criteria.
 	 * @return {Promise<Object>}
 	 */
-	findProject(project) {
+	findProject() {
 		return new Promise((resolve, reject) => {
 			this.client.get('/projects.json')
 			.then((response) => {
 				const projects = response.data.projects;
+				const result = {
+					matches: projects,
+					selected: null
+				};
+
 				const selected = projects.map(function(value, key){
 					const custom_fields = value.custom_fields;
 					if(custom_fields.find(custom_field => custom_field.value.match(window.location.hostname) !== null)){
@@ -137,10 +156,10 @@ export default class Redmine extends Tracker {
 					}
 					return null;
 				}).filter(n => n).shift();
-				const result = {
-					matches: projects,
-					selected: selected
-				};
+
+				if(selected !== undefined){
+					result['selected'] = selected;
+				}
 
 				resolve(result);
 			})
@@ -156,20 +175,35 @@ export default class Redmine extends Tracker {
 		return new Promise((resolve, reject) => {
 			axios.all([
 				this.client.get(`/projects/${id}.json`),
+				this.client.get(`/issue_statuses.json`),
 				this.client.get(`/issues.json`, {
 					params: {
+                        include: ['attachments'],
 						project_id: id
 					}
-				}),
-				this.client.get(`/issue_statuses.json`)
+				})
 			])
-				.then(axios.spread((repository, issues, issue_statuses) => {
+				.then(axios.spread((meta, status, issues) => {
 					const project = {
-						repository: repository.data.project,
-						groups: issue_statuses.data.issue_statuses,
-						issues: issues.data.issues
+						meta: meta.data.project,
+						groups: status.data.issue_statuses,
+						issues: issues.data.issues.map((issue) => {
+                            return new Issue(
+                                issue.id,
+                                issue.author,
+                                issue.subject,
+                                issue.description,
+                                issue.status,
+                                issue.updated_on,
+                                issue.attachments,
+                                issue.custom_fields.find((custom_field) => {
+                                    return custom_field.id === ISSUE_CF_META_ID;
+                                }).value
+                            )
+                        })
 					};
 
+					this.sessionProject.set(id);
 					resolve(project);
 				}))
 				.catch(error => reject(error));
@@ -177,22 +211,54 @@ export default class Redmine extends Tracker {
 	}
 
 	/**
-	 * Initialize new project.
+	 * Select project.
 	 * @return {Promise<Object>}
 	 */
-	initProject() {
-		throw new Error('Please implement me.');
+	selectProject(id) {
+		return this.getProjectUrls(id).then((urls) => {
+			return this.client.put(`/projects/${id}.json`, {
+				project: {
+					custom_fields: [
+						{
+							id: PROJECT_CF_URLS_ID,
+							value: urls
+						}
+					]
+				}
+			});
+		});
 	}
 
 	/**
-	 * Setup project.
+	 * Get project urls.
 	 * @return {Promise<Object>}
 	 */
-	setupProject() {
-		throw new Error('Please implement me.');
+	getProjectUrls(id) {
+		return new Promise((resolve, reject) => {
+			this.client.get(`/projects/${id}.json`)
+				.then((response) => {
+					let urls = '';
+
+					if(response.data && response.data.project && response.data.project.custom_fields){
+						let urlsMeta = response.data.project.custom_fields.find(custom_field => {
+							return custom_field.id === PROJECT_CF_URLS_ID;
+						});
+
+						// Add new url or not ...
+						if(urlsMeta !== undefined && urlsMeta.value !== ''){
+							urls = urlsMeta.value + ',' + window.location.hostname
+						} else {
+							urls = window.location.hostname;
+						}
+					}
+
+					resolve(urls);
+				})
+				.catch(error => reject(error));
+		});
 	}
 
-	/**
+    /**
 	 * Add issue item.
 	 * @return {Promise<Object>}
 	 */
@@ -255,15 +321,12 @@ export default class Redmine extends Tracker {
 	 * Change issue group.
 	 * @return {Promise<Object>}
 	 */
-	changeIssueGroup({ cardId, groupId }) {
-		const data = {
-			issue: {
-				status_id: groupId
-			}
-		};
-		const request = this.client.put(`issues/${cardId}.json`, data);
-
-		return request.then(({ data }) => data);
+	changeIssueGroup(payload) {
+        return this.client.put(`/issues/${payload.cardId}.json`, {
+            issue: {
+                status_id: payload.groupId
+            }
+        });
 	}
 
 	/**
@@ -273,5 +336,4 @@ export default class Redmine extends Tracker {
 	getIssueActions() {
 		throw new Error('Please implement me.');
 	}
-
 }

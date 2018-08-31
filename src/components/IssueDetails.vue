@@ -5,22 +5,28 @@
 				<i class="ico-chevron-left"></i> Back
 			</a>
 
-			<a :href="'https://bugkiller.disko.fr/issues/' + issue.id" @click.stop class="issue__link" target="_blank">
+			<a :href="issue.url" @click.stop class="issue__link" target="_blank">
 				<i class="ico-link-white"></i> Open Issue In Redmine
 			</a>
 		</div>
 
 		<div class="issue__inner">
 			<h4 class="issue__title">
-				<badge :value="issue.status" class="issue__badge" />
-				{{issue.subject}}
+
+				<span v-if="issue.badges" class="issue__comments">
+					<i class="ico-comment"></i>
+
+					<span>{{issue.badges.comments || 0}}</span>
+				</span>
+
+				{{issue.name}}
 			</h4>
 
-			<div v-if="issue.description" class="issue__section">
+			<div v-if="issue.desc" class="issue__section">
 				<h5 class="issue__section-title">Description:</h5>
 
 				<div class="issue__description">
-					{{issue.description}}
+					{{issue.desc}}
 				</div>
 			</div>
 
@@ -29,7 +35,7 @@
 			</div>
 
 			<div class="issue__section">
-				<h5 class="issue__section-title">Change status:</h5>
+				<h5 class="issue__section-title">Change group:</h5>
 
 				<div class="select">
 					<loader v-if="isChangingGroup" />
@@ -40,38 +46,37 @@
 				</div>
 			</div>
 
-			<div v-if="hasMetaData && this.selectedIssueMeta.browser" class="issue__section">
+			<div v-if="issue.meta && issue.meta.browser" class="issue__section">
 				<h5 class="issue__section-title">Meta</h5>
 
 				<div class="table issue__meta">
 					<table>
 						<tr>
 							<th>Resolution</th>
-							<td>{{this.selectedIssueMeta.browser.width}} x {{this.selectedIssueMeta.browser.height}}</td>
+							<td>{{issue.meta.browser.width}} x {{issue.meta.browser.height}}</td>
 						</tr>
 
 						<tr>
 							<th>Browser</th>
-							<td>{{this.selectedIssueMeta.browser.vendor}} {{this.selectedIssueMeta.browser.version}}</td>
+							<td>{{issue.meta.browser.vendor}} {{issue.meta.browser.version}}</td>
 						</tr>
 
 						<tr>
 							<th>OS</th>
-							<td>{{this.selectedIssueMeta.browser.os}}</td>
+							<td>{{issue.meta.browser.os}}</td>
 						</tr>
 					</table>
 				</div>
 			</div>
 
-			<div v-if="screenshots.length" class="issue__section">
+			<div v-if="issue.screenshots.length" class="issue__section">
 				<h5 class="issue__section-title">Screenshot</h5>
 
 				<div class="issue__screenshots">
 					<ul>
-						<li v-for="screenshot in screenshots">
+						<li v-for="screenshot in issue.screenshots">
 							<a :href="screenshot.url" target="_blank">
-								<img v-if="screenshot.previews.length > 1" :src="screenshot.previews[1].url">
-								<img v-else :src="screenshot.url">
+								<img :src="screenshot.preview">
 							</a>
 						</li>
 					</ul>
@@ -116,14 +121,13 @@ export default {
 	data() {
 		return {
 			status: '',
-			groupId: this.issue && this.issue.status && this.issue.status.id
+			groupId: this.issue && this.issue.idList
 		};
 	},
 
 	computed: {
 		...mapGetters([
-			'currentUrl',
-			'selectedIssueMeta'
+			'currentUrl'
 		]),
 
 		/**
@@ -134,20 +138,6 @@ export default {
 			if (this.groups) {
 				return this.groups.find(group => group.id === this.groupId);
 			}
-		},
-
-		/**
-		 * Get issue screenshots array.
-		 * @return {Array}
-		 */
-		screenshots() {
-			if (this.issue && !this.issue.attachments) {
-				return [];
-			}
-
-			return this.issue.attachments.filter(attachment => {
-				return attachment.name === 'Screenshot';
-			});
 		},
 
 		/**
@@ -171,10 +161,6 @@ export default {
 			const currentUrl = this.currentUrl.replace(/\/?\#issue\-\w+$/, '');
 
 			return issueUrl === currentUrl;
-		},
-
-		hasMetaData() {
-			return (this.selectedIssueMeta);
 		}
 	},
 
@@ -211,7 +197,7 @@ export default {
 	watch: {
 		issue: {
 			handler() {
-				this.groupId = this.issue.status.id;
+				this.groupId = this.issue.idList;
 			},
 			deep: true
 		}

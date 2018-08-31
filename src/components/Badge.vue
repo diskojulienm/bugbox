@@ -1,5 +1,5 @@
 <template>
-	<span class="badge" :style="style">{{value.name}}</span>
+	<span class="badge" :style="style">{{value}}</span>
 </template>
 
 <script>
@@ -30,12 +30,12 @@ export default {
 		 * @return {String}
 		 */
 		backgroundColor() {
-			switch (this.value.id) {
-				case 1:
+			switch (this.value) {
+				case 'Nouveau':
 					return '#f05d5d';
-				case 2:
+				case 'En cours':
 					return '#0079bf';
-				case 8:
+				case 'Traité':
 					return '#72aa67';
 				default:
 					return stringToColour(this.value);

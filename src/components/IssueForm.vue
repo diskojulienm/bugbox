@@ -101,7 +101,7 @@ export default {
 			status: '',
 			title: null,
 			description: null,
-			projectId: null,
+			group: null,
 			screenshot: null,
 			lastPos: {
 				x: 0,
@@ -142,6 +142,26 @@ export default {
 		 */
 		meta() {
 			return this.tagged;
+		},
+
+		/**
+		 * Get issue default group.
+		 * @return {Object}
+		 */
+		defaultGroup() {
+			if (!this.project.groups.length) {
+				return null;
+			}
+
+			let defaultGroup = this.project.groups.find(group => {
+				return group.name.indexOf('To Do') >= 0;
+			});
+
+			if (!defaultGroup) {
+				defaultGroup = this.project.groups[0];
+			}
+
+			return defaultGroup;
 		}
 	},
 
@@ -169,7 +189,7 @@ export default {
 			this.status = '';
 			this.title = null;
 			this.description = null;
-			this.projectId = null;
+			this.group = null;
 
 			window.focus();
 		},
@@ -315,7 +335,8 @@ export default {
 				return;
 			}
 
-			const projectId = this.project.repository.id;
+			const projectId = this.project.meta.id;
+			const group = this.defaultGroup && this.defaultGroup.id;
 			const { title, description } = this;
 			const meta = {
 				...this.meta,
@@ -323,7 +344,7 @@ export default {
 			};
 
 			this.status = 'loading';
-			this.addIssue({ title, description, projectId, meta })
+			this.addIssue({ projectId, title, description, group, meta })
 				.then(() => this.reset());
 		},
 	},

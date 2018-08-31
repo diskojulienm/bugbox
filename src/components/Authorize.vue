@@ -96,3 +96,9 @@ export default {
 	}
 }
 </script>
+
+<style lang="scss">
+	.authorize__inner {
+		text-align: center;
+	}
+</style>

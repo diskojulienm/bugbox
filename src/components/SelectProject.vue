@@ -8,9 +8,7 @@
 
 				<div class="select">
 					<select v-model="selected" required>
-						<option v-for="project in projectsList" :value="project.id">
-							<template v-if="project.parent">{{project.parent.name}} > </template>{{project.name}}
-						</option>
+						<option v-for="project in projectsList" :value="project.id">{{project.name}}</option>
 					</select>
 				</div>
 			</div>
@@ -74,7 +72,7 @@ export default {
 
 	methods: {
 		...mapActions([
-			'getProject'
+			'selectProject'
 		]),
 
 		/**
@@ -85,7 +83,7 @@ export default {
 		handleSubmit(event) {
 			this.status = 'loading';
 
-			this.getProject(this.selected)
+			this.selectProject(this.selected)
 				.then((response) => {
 					this.status = '';
 				});

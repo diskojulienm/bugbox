@@ -47,14 +47,13 @@ const getters = {
 
 		if (state.filters.currentPageOnly) {
 			issues = issues.filter(issue => {
-				if (!issue.custom_fields) {
+				if (!issue.meta) {
 					return false;
 				}
 
-				if(issue.custom_fields.find(custom_field => custom_field.value.match(getters.currentUrl) !== null)){
-					return true;
-				}
-				return false
+				const currentUrl = getters.currentUrl.replace(/\#issue\-(.+)$/, '');
+
+				return currentUrl === issue.meta.url;
 			});
 		}
 
@@ -79,24 +78,6 @@ const getters = {
 
 	selectedIssueId(state, getters) {
 		return state.selectedIssueId;
-	},
-
-	selectedIssueMeta(state, getters) {
-		let issues = getters.issues;
-		let selectedIssueId = getters.selectedIssueId;
-		let selectedIssueMeta = false;
-
-		issues.forEach(issue => {
-			if(issue.id == selectedIssueId && issue.custom_fields){
-				issue.custom_fields.forEach(custom_field => {
-					if(custom_field.name == 'meta'){
-						selectedIssueMeta = JSON.parse(custom_field.value);
-					}
-				});
-			}
-		});
-
-		return selectedIssueMeta;
 	},
 
 	tagManager(state, getters) {

@@ -15,7 +15,20 @@ module.exports = {
     rules: [
       {
         test: /\.vue$/,
-        loader: 'vue-loader'
+        loader: 'vue-loader',
+        options: {
+          loaders: {
+            scss: 'vue-style-loader!css-loader!sass-loader'
+          }
+        }
+      },
+      {
+        test: /\.s(a|c)ss$/,
+        use: [
+          "style-loader",
+          "css-loader",
+          "sass-loader"
+        ]
       },
       {
         test: /\.js$/,
@@ -36,8 +49,14 @@ module.exports = {
       'components': path.resolve(__dirname, 'src/components'),
       'helpers': path.resolve(__dirname, 'src/helpers'),
       'lib': path.resolve(__dirname, 'src/lib'),
+      'model': path.resolve(__dirname, 'src/model'),
       'services': path.resolve(__dirname, 'src/services'),
       'store': path.resolve(__dirname, 'src/store')
+    }
+  },
+  resolveLoader: {
+    alias: {
+      'scss': 'sass-loader'
     }
   },
   performance: {
