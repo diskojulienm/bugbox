@@ -99,38 +99,10 @@ export default {
 		 */
 		toggleExpanded(event, toggle = !this.expanded) {
 			this.expanded = toggle;
-		},
-
-		/**
-		 * Expand select dropdown.
-		 * @return {void}
-		 */
-		expand() {
-			this.toggleExpanded(null, true);
-		},
-
-		/**
-		 * Collapse select dropdown.
-		 * @return {void}
-		 */
-		collapse() {
-			this.toggleExpanded(null, false);
 		}
 	},
 
 	watch: {
-		expanded() {
-			setTimeout(() => {
-				if (this.expanded) {
-					window.addEventListener('click', this.collapse);
-					this.iframe && this.iframe.contentWindow.addEventListener('click', this.collapse);
-				} else {
-					window.removeEventListener('click', this.collapse);
-					this.iframe && this.iframe.contentWindow.removeEventListener('click', this.collapse);
-				}
-			}, 10);
-		},
-
 		innerValue() {
 			this.$emit('input', this.innerValue);
 		}
