@@ -267,38 +267,61 @@ export default class Redmine extends Tracker {
 	 * @return {Promise<Object>}
 	 */
 	addIssue(issue) {
-		const payload = {
-			issue: {
-				subject: issue.title,
-				description: issue.description,
-				project_id: issue.projectId
-			}
-		};
+        return new Promise((resolve, reject) => {
+    		const payload = {
+    			issue: {
+    				subject: issue.title,
+    				description: issue.description,
+    				project_id: issue.projectId
+    			}
+    		};
 
-		if (issue.meta && issue.meta.screenshot) {
-			issue.screenshot = issue.meta.screenshot;
+    		if (issue.meta && issue.meta.screenshot) {
+    			issue.screenshot = issue.meta.screenshot;
 
-			delete issue.meta.screenshot;
+    			delete issue.meta.screenshot;
 
-			payload.issue.custom_fields = [
-				{id: 1, value: issue.meta.url}, // page
-				{id: 10, value: `${issue.meta.browser.width}x${issue.meta.browser.height}`}, // screen_size
-				{id: 11, value: issue.meta.browser.os}, // os
-				{id: 12, value: `${issue.meta.browser.vendor} ${issue.meta.browser.version}`}, // browser
-				{id: 13, value: JSON.stringify(issue.meta)}, // meta
-			]
-		}
+    			payload.issue.custom_fields = [
+    				{id: 1, value: issue.meta.url}, // page
+    				{id: 10, value: `${issue.meta.browser.width}x${issue.meta.browser.height}`}, // screen_size
+    				{id: 11, value: issue.meta.browser.os}, // os
+    				{id: 12, value: `${issue.meta.browser.vendor} ${issue.meta.browser.version}`}, // browser
+    				{id: 13, value: JSON.stringify(issue.meta)}, // meta
+    			]
+    		}
 
-		return this.addIssueScreenshot(issue.screenshot)
-			.then(token => {
-				if(token){
-					payload.issue.uploads = [
-						{token: token, filename: 'screenshot.png', content_type: 'image/png'}
-					];
-				}
+    		return this.addIssueScreenshot(issue.screenshot)
+    			.then(token => {
+    				if(token){
+    					payload.issue.uploads = [
+    						{token: token, filename: 'screenshot.png', content_type: 'image/png'}
+    					];
+    				}
 
-				return this.client.post('/issues.json', payload);
-			});
+    				return this.client.post('/issues.json', payload, {
+                        params: {
+                            include: ['attachments']
+                        }
+                    })
+                        .then((response) => {
+                            console.log(response);
+                            const issue = response.data.issue;
+                            resolve (new Issue(
+                                issue.id,
+                                issue.author,
+                                issue.subject,
+                                issue.description,
+                                issue.status,
+                                issue.updated_on,
+                                issue.attachments,
+                                issue.custom_fields.find((custom_field) => {
+                                    return custom_field.id === ISSUE_CF_META_ID;
+                                }).value
+                            ));
+                        })
+                        .catch(error => reject(error));
+    			});
+        });
 	}
 
 	/**
