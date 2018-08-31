@@ -141,7 +141,11 @@ export default class Redmine extends Tracker {
 	 */
 	findProject() {
 		return new Promise((resolve, reject) => {
-			this.client.get('/projects.json')
+			this.client.get('/projects.json', {
+                params: {
+                    limit: 1000
+                }
+            })
 			.then((response) => {
 				const projects = response.data.projects;
 				const result = {
@@ -322,10 +326,38 @@ export default class Redmine extends Tracker {
 	 * @return {Promise<Object>}
 	 */
 	changeIssueGroup(payload) {
-        return this.client.put(`/issues/${payload.cardId}.json`, {
-            issue: {
-                status_id: payload.groupId
-            }
+        return new Promise((resolve, reject) => {
+            this.client.put(`/issues/${payload.cardId}.json`, {
+                issue: {
+                    status_id: payload.groupId
+                }
+            })
+                .then((response) => {
+                    if(response.status && response.status === 200){
+                        this.client.get(`/issues/${payload.cardId}.json`, {
+                            params: {
+                                include: ['attachments']
+        					}
+                        })
+                            .then((response) => {
+                                const issue = response.data.issue;
+                                resolve (new Issue(
+                                    issue.id,
+                                    issue.author,
+                                    issue.subject,
+                                    issue.description,
+                                    issue.status,
+                                    issue.updated_on,
+                                    issue.attachments,
+                                    issue.custom_fields.find((custom_field) => {
+                                        return custom_field.id === ISSUE_CF_META_ID;
+                                    }).value
+                                ));
+                            })
+                            .catch(error => reject(error));
+                    }
+                })
+                .catch(error => reject(error));
         });
 	}
 

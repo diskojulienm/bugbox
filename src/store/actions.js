@@ -124,13 +124,11 @@ const actions = {
 	 * Allow user to select different project.
 	 * @param  {Function} options.commit
 	 * @param  {mixed} payload
-	 * @return {Promise}
+	 * @return void
 	 */
 	changeProject({ commit }, payload) {
 		commit('SET_STATUS', 'await_project_selection');
 		commit('SET_PROJECT', null);
-
-		return tracker.setSelectedProject(null);
 	},
 
 	/**
